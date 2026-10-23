@@ -1,0 +1,140 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{% block title %}Warehouse Manager{% endblock %} · Smart Inventory</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+
+<body>
+{% if session.get('user') %}
+
+<div class="app-shell">
+    <aside class="sidebar">
+
+        <div class="brand">
+            <span class="brand-icon">W</span>
+            <div>
+                <strong>WareSmart</strong>
+                <small>Inventory system</small>
+            </div>
+        </div>
+
+        <div class="warehouse-chip">
+            <small>YOUR WAREHOUSE</small>
+            <strong>{{ session['user']['warehouse_name'] }}</strong>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('dashboard') }}"
+               class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                ▦ Dashboard
+            </a>
+
+            <p>MANAGEMENT</p>
+
+            {% for slug, label in [
+                ('employees', 'Employees'),
+                ('products', 'Products'),
+                ('storage', 'Storage'),
+                ('inventory', 'Inventory'),
+                ('units', 'Units / Barcodes'),
+                ('stock-requests', 'Stock requests'),
+                ('stock-transfers', 'Stock transfers')
+            ] %}
+                <a href="{{ url_for('module_page', slug=slug) }}"
+                   class="{% if request.view_args and request.view_args.get('slug') == slug %}active{% endif %}">
+                    {{ label }}
+                </a>
+            {% endfor %}
+
+            <p>SALES</p>
+
+            {% for slug, label in [
+                ('retail-shops', 'Retail shops'),
+                ('sale-orders', 'Sale orders'),
+                ('sale-order-items', 'Sale order items')
+            ] %}
+                <a href="{{ url_for('module_page', slug=slug) }}"
+                   class="{% if request.view_args and request.view_args.get('slug') == slug %}active{% endif %}">
+                    {{ label }}
+                </a>
+            {% endfor %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="avatar">
+                {{ session['user']['name'][:1] | upper }}
+            </div>
+
+            <div class="user-meta">
+                <strong>{{ session['user']['name'] }}</strong>
+                <small>{{ session['user']['designation'] }}</small>
+            </div>
+
+            <a class="logout"
+               href="{{ url_for('logout') }}"
+               title="Log out">↗</a>
+        </div>
+
+    </aside>
+
+    <main class="main-area">
+
+        <header class="topbar">
+            <div>
+                <span class="eyebrow">WAREHOUSE OPERATIONS</span>
+                <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+            </div>
+
+            <div class="top-user">
+                <span class="online-dot"></span>
+                Manager session
+            </div>
+        </header>
+
+        <section class="content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+
+        </section>
+
+        <footer>
+            WareSmart · Warehouse-scoped inventory management
+        </footer>
+
+    </main>
+</div>
+
+{% else %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }} login-flash">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block auth_content %}{% endblock %}
+
+{% endif %}
+</body>
+</html>

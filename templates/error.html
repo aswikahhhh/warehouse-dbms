@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}{{ code }}{% endblock %}{% block page_heading %}{{ code }} — Access notice{% endblock %}{% block content %}<section class="panel error-panel"><span class="error-code">{{ code }}</span><h2>Something went wrong</h2><p>{{ message }}</p><a class="btn primary" href="{{ url_for('dashboard') }}">Back to dashboard</a></section>{% endblock %}
