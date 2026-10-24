@@ -11,9 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 load_dotenv()
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY")
-if not app.config["SECRET_KEY"]:
-    raise RuntimeError("Set FLASK_SECRET_KEY in your .env file.")
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or "dev-secret-key-change-me"
 app.config.update(
     MYSQL_HOST=os.getenv("DB_HOST", "localhost"),
     MYSQL_PORT=int(os.getenv("DB_PORT", "3306")),
@@ -151,30 +149,48 @@ def option_data():
     return {"products":products,"storages":storages,"requests":requests,"orders":orders,"shops":shops}
 
 def field_values(field, raw, opts):
-    if raw == "" and not field[3]: return None
-    typ=field[2]
-    if typ=="number":
+    if raw is None:
+        raw = ""
+    raw = raw.strip()
+    if raw == "" and field[3]:
+        raise ValueError(f"{field[1]} is required.")
+    if raw == "" and not field[3]:
+        return None
+
+    typ = field[2]
+    if typ == "number":
         try:
-            value=Decimal(raw)
-            if value < 0: raise ValueError(f"{field[1]} cannot be negative.")
+            value = Decimal(raw)
+            if value < 0:
+                raise ValueError(f"{field[1]} cannot be negative.")
             return int(value) if value == value.to_integral_value() else value
         except (InvalidOperation, ValueError):
             raise ValueError(f"{field[1]} must be a valid non-negative number.")
-    if typ=="date": return raw or None
-    option_types={"select_product":("products","product_id"),"select_storage":("storages","storage_id"),
-                  "select_request":("requests","sr_id"),"select_order":("orders","so_id"),"select_shop":("shops","shop_id")}
+    if typ == "date":
+        return raw or None
+    option_types = {
+        "select_product": ("products", "product_id"),
+        "select_storage": ("storages", "storage_id"),
+        "select_request": ("requests", "sr_id"),
+        "select_order": ("orders", "so_id"),
+        "select_shop": ("shops", "shop_id"),
+    }
     if typ in option_types:
-        key, pk=option_types[typ]
-        valid={str(x[pk]) for x in opts[key]}
-        if raw not in valid: raise ValueError(f"Choose a valid {field[1].lower()} for your warehouse.")
+        key, pk = option_types[typ]
+        valid = {str(x[pk]) for x in opts[key]}
+        if raw not in valid:
+            raise ValueError(f"Choose a valid {field[1].lower()} for your warehouse.")
         return int(raw)
-    allowed={"select_request_status":{"Pending","Approved","Rejected","Fulfilled"},
-             "select_unit_status":{"Available","Reserved","Dispatched","Damaged"},
-             "select_order_status":{"Pending","Approved","Dispatched","Cancelled"}}
+    allowed = {
+        "select_request_status": {"Pending", "Approved", "Rejected", "Fulfilled"},
+        "select_unit_status": {"Available", "Reserved", "Dispatched", "Damaged"},
+        "select_order_status": {"Pending", "Approved", "Dispatched", "Cancelled"},
+    }
     if typ in allowed:
-        if raw not in allowed[typ]: raise ValueError("Choose a valid option.")
+        if raw not in allowed[typ]:
+            raise ValueError("Choose a valid option.")
         return raw
-    return raw.strip()
+    return raw
 
 @app.route("/module/<slug>", methods=["GET","POST"])
 @manager_only
@@ -184,7 +200,10 @@ def module_page(slug):
     if request.method=="POST":
         cur=None
         try:
-            values=[field_values(f,request.form.get(f[0],"").strip(),opts) for f in cfg["fields"]]
+            values=[]
+            for f in cfg["fields"]:
+                raw_value = request.form.get(f[0], "")
+                values.append(field_values(f, raw_value, opts))
             if slug in ("employees","storage","products","units","sale-orders","sale-order-items"): values.append(u["warehouse_id"])
             elif slug=="inventory": values=[values[0],u["warehouse_id"],values[1],values[2]]
             elif slug=="stock-requests": values.extend([u["warehouse_id"],u["emp_id"]])

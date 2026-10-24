@@ -6,7 +6,7 @@ WARESMART - FIXED FLASK + MYSQL PROJECT
    py -m venv .venv
    .venv\Scripts\activate
    pip install -r requirements.txt
-4. Copy .env.example to .env. Replace FLASK_SECRET_KEY with a long random value and DB_PASSWORD with your MySQL password.
+4. Copy .env.example to .env. Replace FLASK_SECRET_KEY with a long random value and DB_PASSWORD with your MySQL password. The app falls back to a development-only secret if not configured, but production deployments should always set a real secret.
 5. In MySQL Workbench, run schema.sql first, then dummy_data.sql.
    The warehouse seed rows are updated when schema.sql is rerun. CREATE TABLE IF NOT EXISTS does not update old table structures.
 6. Create the three manager accounts:
