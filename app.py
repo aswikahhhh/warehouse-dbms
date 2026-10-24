@@ -16,7 +16,7 @@ app.config.update(
     MYSQL_HOST=os.getenv("DB_HOST", "localhost"),
     MYSQL_PORT=int(os.getenv("DB_PORT", "3306")),
     MYSQL_USER=os.getenv("DB_USER", "root"),
-    MYSQL_PASSWORD=os.getenv("DB_PASSWORD", ""),
+    MYSQL_PASSWORD=os.getenv("DB_PASSWORD", "Mysql2026#!"),
     MYSQL_DB=os.getenv("DB_NAME", "warehouse_management"),
     MYSQL_CURSORCLASS="DictCursor",
 )
