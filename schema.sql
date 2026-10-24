@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS unit (
  FOREIGN KEY (storage_id) REFERENCES storage(storage_id), FOREIGN KEY (product_id) REFERENCES product(product_id),
  FOREIGN KEY (inventory_id) REFERENCES inventory(inventory_id), FOREIGN KEY (sop_id) REFERENCES sale_order_item(sop_id),
  FOREIGN KEY (warehouse_id) REFERENCES warehouse(warehouse_id));
-INSERT IGNORE INTO warehouse (warehouse_id,warehouse_name,contact_no,location) VALUES
-(1,'Main Warehouse','0491-000000','Palakkad'),(2,'North Warehouse','0495-111111','Kozhikode'),
-(3,'Central Warehouse','0484-222222','Ernakulam');
+INSERT INTO warehouse (warehouse_id,warehouse_name,contact_no,location) VALUES
+(1,'Warehouse-Palakkad','0491-000000','Palakkad'),(2,'Warehouse-Kozhikode','0495-111111','Kozhikode'),
+(3,'Warehouse-Ernakulam','0484-222222','Ernakulam')
+ON DUPLICATE KEY UPDATE
+ warehouse_name=VALUES(warehouse_name),contact_no=VALUES(contact_no),location=VALUES(location);
